@@ -114,7 +114,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <div class="ctl"><label class="lab" for="ch">Height px</label><input id="ch" type="number" min="200" max="4096" step="1" value="1080"></div>
         </div>
         <div class="ctl"><span class="lab">Background colour</span>
-          <div class="sw" data-for="bgCol" data-cols="012C42,FFFFFF,000000,C96763,00BFFF,250F0E,EEFAFF,FBF5F5"><input id="bgCol" type="color" value="#012c42" aria-label="Background colour"></div></div>
+          <div class="sw" data-for="bgCol" data-cols="012C42,250F0E,C96763,00BFFF,EEFAFF,FBF5F5"><input id="bgCol" type="color" value="#012c42" aria-label="Background colour" hidden></div></div>
       </div>
     </details>
 
@@ -164,8 +164,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <div class="ctl" id="tWeightCtl"><label class="lab" for="tWeight">Weight</label>
               <select id="tWeight"><option value="400">Regular</option><option value="500">Medium</option><option value="600">Semibold</option><option value="700">Bold</option></select></div>
           </div>
-          <div class="ctl"><span class="lab">Text colour</span>
-            <div class="sw" data-for="tColor" data-cols="012C42,FFFFFF,C96763,250F0E,00BFFF,000000"><input id="tColor" type="color" value="#ffffff" aria-label="Text colour"></div></div>
+          <div class="ctl"><div class="row"><span class="lab">Text colour</span><span class="val" id="tContrast"></span></div>
+            <div class="sw" id="tCols" role="group" aria-label="Text colour"></div>
+            <span class="val">Only colours that pass WCAG AA on this background are shown.</span></div>
           <div class="three">
             <button class="btn small" id="tUp" type="button">Move up</button>
             <button class="btn small" id="tDown" type="button">Move down</button>
@@ -511,7 +512,7 @@ for(const key of Object.keys(fmt)){
 }
 
 /* ---------- controls: colour swatches ---------- */
-document.querySelectorAll('.sw').forEach(g => {
+document.querySelectorAll('.sw[data-for]').forEach(g => {
   const inp = $(g.dataset.for);
   g.dataset.cols.split(',').reverse().forEach(c => {
     const b = document.createElement('button'); b.type = 'button'; b.dataset.c = '#'+c.toLowerCase();
@@ -522,17 +523,17 @@ document.querySelectorAll('.sw').forEach(g => {
   inp.addEventListener('input', syncSwatches);
 });
 function syncSwatches(){
-  document.querySelectorAll('.sw').forEach(g => { const v = $(g.dataset.for).value.toLowerCase();
+  document.querySelectorAll('.sw[data-for]').forEach(g => { const v = $(g.dataset.for).value.toLowerCase();
     g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === v)); });
 }
-$('bgCol').addEventListener('input', e => { S.bgCol = e.target.value; draw(); });
+$('bgCol').addEventListener('input', e => { S.bgCol = e.target.value; ensureColours(); draw(); });
 $('strokeCol').addEventListener('input', e => { S.strokeCol = e.target.value; draw(); });
 
 /* ---------- controls: canvas size ---------- */
 PRESETS.forEach(([id,label,w,h]) => { const o = document.createElement('option'); o.value = id; o.textContent = w ? label + '  ' + w + ' × ' + h : label; $('preset').appendChild(o); });
 function setSize(w, h){
   S.W = Math.round(Math.min(4096, Math.max(200, w||1080))); S.H = Math.round(Math.min(4096, Math.max(200, h||1080)));
-  draw();
+  ensureColours(); draw();
 }
 $('preset').addEventListener('change', e => {
   const p = PRESETS.find(x => x[0] === e.target.value), custom = p[0] === 'custom';
@@ -579,16 +580,43 @@ $('reach').addEventListener('input', () => { S.autoFit = false; });
 
 /* ---------- controls: text ---------- */
 Object.entries(STYLES).forEach(([k,st]) => { const o = document.createElement('option'); o.value = k; o.textContent = st.label; $('tStyle').appendChild(o); });
-const isDark = hex => { const [r,g,b] = [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)); return 0.2126*r + 0.7152*g + 0.0722*b < 140; };
+// WCAG 2 contrast. Large text (24px and up, or 18.66px and up in bold) needs 3:1; smaller text needs 4.5:1.
+const lum = hex => { const [r,g,b] = [1,3,5].map(i => { const c = parseInt(hex.slice(i,i+2),16)/255; return c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }); return 0.2126*r + 0.7152*g + 0.0722*b; };
+const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05); };
+// brand text colours: Primary Dark, White, Black, Dark Rose, Highlight, Rose 600, Rose 300, Blue 400, Blue 600, Blue 200
+const TEXT_COLS = ['#012c42','#ffffff','#000000','#250f0e','#c96763','#98413d','#db918e','#00bfff','#007ab2','#6fe2ff'];
+function need(t){ const st = STYLES[t.style], px = st.size*TYPE_SCALE*typeUnit(), w = st.w || t.weight; return (px >= 24 || (px >= 18.66 && w >= 700)) ? 3 : 4.5; }
+const okCols = t => TEXT_COLS.filter(c => ratio(c, S.bgCol) >= need(t));
+// brand rule first (typography Primary Dark, eyebrows Highlight), then the nearest brand colour that passes
+function defaultCol(t){
+  const ok = okCols(t), dark = lum(S.bgCol) < 0.18;
+  const base = dark ? ['#ffffff','#012c42'] : ['#012c42','#ffffff'];
+  const pref = t.style === 'eyebrow' ? ['#c96763', dark ? '#db918e' : '#98413d', ...base] : base;
+  return pref.find(c => ok.includes(c)) || (ratio('#ffffff', S.bgCol) >= ratio('#000000', S.bgCol) ? '#ffffff' : '#000000');
+}
+// called whenever the background, a style or the canvas size changes: any colour that no longer passes is replaced
+// a colour the user picked by hand is kept for as long as it still passes
+function ensureColours(){ texts.forEach(t => { if(!t.manual || !okCols(t).includes(t.color)){ t.color = defaultCol(t); t.manual = false; } }); renderTextCols(); }
+function renderTextCols(){
+  const box = $('tCols'); box.textContent = '';
+  if(!sel) return;
+  okCols(sel).forEach(c => {
+    const b = document.createElement('button'); b.type = 'button'; b.style.background = c;
+    b.setAttribute('aria-label', c.toUpperCase() + ', contrast ' + ratio(c, S.bgCol).toFixed(1) + ' to 1'); b.title = ratio(c, S.bgCol).toFixed(1) + ':1';
+    b.setAttribute('aria-pressed', c === sel.color);
+    b.onclick = () => { sel.color = c; sel.manual = true; renderTextCols(); draw(); };
+    box.appendChild(b);
+  });
+  $('tContrast').textContent = ratio(sel.color, S.bgCol).toFixed(1) + ':1 (needs ' + need(sel) + ':1)';
+}
 function addText(kind){
-  // brand rule: typography is Primary Dark, eyebrows are Highlight; white is used where the background is dark
-  const base = isDark(S.bgCol) ? '#ffffff' : '#012c42';
   const defs = {
-    headline:{ text:'Your headline goes here', style:'dlg', color:base },
-    body:{ text:'Body text goes here. Keep it to a sentence or two.', style:'txl', color:base },
-    eyebrow:{ text:'Eyebrow text', style:'eyebrow', color:'#c96763' }
+    headline:{ text:'Your headline goes here', style:'dlg' },
+    body:{ text:'Body text goes here. Keep it to a sentence or two.', style:'txl' },
+    eyebrow:{ text:'Eyebrow text', style:'eyebrow' }
   }[kind];
   const t = Object.assign({ id:nextId++, weight:400 }, defs);
+  t.color = defaultCol(t);
   if(kind === 'eyebrow') texts.unshift(t); else texts.push(t);   // eyebrows go above, everything else below
   select(t); return t;
 }
@@ -600,7 +628,7 @@ function select(t){
     const st = STYLES[sel.style], i = texts.indexOf(sel);
     $('tText').value = sel.text; $('tStyle').value = sel.style; $('tWeight').value = st.w || sel.weight;
     $('tWeight').disabled = !!st.w; $('tWeightCtl').classList.toggle('off', !!st.w);
-    $('tColor').value = sel.color; $('tUp').disabled = i === 0; $('tDown').disabled = i === texts.length-1;
+    renderTextCols(); $('tUp').disabled = i === 0; $('tDown').disabled = i === texts.length-1;
     syncSwatches();
   }
   draw();
@@ -624,9 +652,8 @@ $('addH').onclick = () => addText('headline');
 $('addB').onclick = () => addText('body');
 $('addE').onclick = () => addText('eyebrow');
 $('tText').addEventListener('input', e => { if(sel){ sel.text = e.target.value; renderLayers(); draw(); } });
-$('tStyle').addEventListener('change', e => { if(sel){ sel.style = e.target.value; select(sel); } });
-$('tWeight').addEventListener('change', e => { if(sel){ sel.weight = +e.target.value; draw(); } });
-$('tColor').addEventListener('input', e => { if(sel){ sel.color = e.target.value; draw(); } });
+$('tStyle').addEventListener('change', e => { if(sel){ sel.style = e.target.value; ensureColours(); select(sel); } });
+$('tWeight').addEventListener('change', e => { if(sel){ sel.weight = +e.target.value; ensureColours(); draw(); } });
 function move(d){ const i = texts.indexOf(sel), j = i + d; if(i < 0 || j < 0 || j >= texts.length) return; [texts[i], texts[j]] = [texts[j], texts[i]]; select(sel); }
 $('tUp').onclick = () => move(-1);
 $('tDown').onclick = () => move(1);
