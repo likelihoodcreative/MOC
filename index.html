@@ -141,9 +141,7 @@ button:focus-visible,input:focus-visible,label.btn:focus-within{outline:2px soli
         <button type="button" id="styArcs" aria-pressed="true">Logo</button>
       </div>
       <div class="ctl" id="arcCtl"><div class="row"><label for="arcRot">Arc rotation</label><span class="val" id="arcRotV"></span></div>
-        <input id="arcRot" type="range" min="0" max="360" step="1" value="0">
-        <div class="row" style="margin-top:8px"><label for="thick">Arc thickness</label><span class="val" id="thickV"></span></div>
-        <input id="thick" type="range" min="-10" max="10" step="0.5" value="0"></div>
+        <input id="arcRot" type="range" min="0" max="360" step="1" value="0"></div>
       <div id="lineCtl" class="group" style="border:0;padding:0">
       <div class="ctl" id="strokeCtl"><div class="row"><label for="stroke">Ring line weight</label><span class="val" id="strokeV"></span></div>
         <input id="stroke" type="range" min="0" max="40" step="0.5" value="0">
@@ -313,7 +311,7 @@ function draw(){
 }
 
 // controls
-const fmt = { blur:v=>(+v).toFixed(1)+' px', blurInc:v=>'+'+(+v).toFixed(2)+' px', arcRot:v=>v+'°', thick:v=>(v>0?'+':'')+(+v), fade:v=>v+'%', pix:v=>(+v).toFixed(1)+' px', pixInc:v=>'+'+(+v).toFixed(1)+' px', rings:v=>v, centre:v=>Math.round(v*100)+'%', scale:v=>'+'+v+'%', reach:v=>Math.round(v*100)+'%', grow:v=>'+'+(+v).toFixed(1)+'%', twist:v=>(+v).toFixed(1)+'°', stroke:v=>(+v).toFixed(1)+' px' };
+const fmt = { blur:v=>(+v).toFixed(1)+' px', blurInc:v=>'+'+(+v).toFixed(2)+' px', arcRot:v=>v+'°', fade:v=>v+'%', pix:v=>(+v).toFixed(1)+' px', pixInc:v=>'+'+(+v).toFixed(1)+' px', rings:v=>v, centre:v=>Math.round(v*100)+'%', scale:v=>'+'+v+'%', reach:v=>Math.round(v*100)+'%', grow:v=>'+'+(+v).toFixed(1)+'%', twist:v=>(+v).toFixed(1)+'°', stroke:v=>(+v).toFixed(1)+' px' };
 for(const key of Object.keys(fmt)){
   const el = $(key), out = $(key+'V');
   const sync = () => { S[key] = +el.value; out.textContent = fmt[key](el.value); draw(); };
