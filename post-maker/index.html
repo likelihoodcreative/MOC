@@ -43,6 +43,9 @@ canvas{max-width:100%;max-height:100%;width:auto;height:auto;display:block;curso
 .hint{position:absolute;left:24px;right:24px;bottom:12px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
 .rail{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:16px;align-self:start}
+.back{display:inline-block;margin-bottom:12px;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:7px;padding:6px 10px}
+.back:hover{border-color:var(--accent)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--display);font-size:26px;font-weight:600;margin:0;letter-spacing:-.02em;line-height:1.15}
 .sub{color:var(--muted);font-size:13px;margin:6px 0 0;line-height:1.45}
 details{border-top:1px solid var(--line);padding-top:14px}
@@ -98,6 +101,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
   <aside class="rail">
     <div>
+      <a class="back" href="https://likelihoodcreative.github.io/MOC/">&larr; Back to tools</a>
       <h1>MOC Post Maker</h1>
       <p class="sub">Pick a canvas, place an image, add brand text and ripple rings, then download the PNG.</p>
     </div>
