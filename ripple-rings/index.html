@@ -192,7 +192,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <input id="fade" type="range" min="0" max="100" step="1" value="100">
           <span class="val">Fades into the background colour</span></div>
         <span class="mini">Colour halftone</span>
-        <div class="ctl"><div class="row"><label for="pix">Centre dot size</label><span class="val" id="pixV"></span></div>
+        <div class="ctl"><div class="row"><label for="pix">Halftone dot size</label><span class="val" id="pixV"></span></div>
           <input id="pix" type="range" min="0" max="40" step="1" value="0"></div>
         <div class="ctl"><div class="row"><label for="pixInc">Increase per ring</label><span class="val" id="pixIncV"></span></div>
           <input id="pixInc" type="range" min="0" max="20" step="0.5" value="0"></div>
@@ -339,6 +339,17 @@ function drawScaled(s, rot, ht, bl){
 }
 
 /* ---------- rings ---------- */
+/* In the logo the centre dot's radius is 1.03 times the ring pitch (measured from the master artwork:
+   centre ring 234, arcs 228 apart, at 3200 px). The Centre size slider can't go below that. */
+const LOGO_CENTRE = 1.03;
+function centreMin(){
+  const N = S.rings;
+  if(S.ringStyle === 'none' || N < 2) return 0.02;
+  if(S.ringStyle === 'arcs') return LOGO_CENTRE/(N - 1 + LOGO_CENTRE);
+  const g = 1 + S.grow/100, bands = N - 1, total = g === 1 ? bands : (Math.pow(g, bands) - 1)/(g - 1);
+  return LOGO_CENTRE/(total + LOGO_CENTRE);  // circles: centre radius at least 1.03 x the first ring's width
+}
+
 // arc segments traced from the logo, innermost ring first (degrees, clockwise from 3 o'clock); repeats past ring 6
 const ARCS = [
   [[259.3,541.8]], [[145.3,471.7]], [[38.9,360.1]],
@@ -360,6 +371,8 @@ function drawRings(){
     : {x0:fx-rout-2, y0:fy-rout-2, x1:fx+rout+2, y1:fy+rout+2, cx:fx, cy:fy, rin:Math.max(0, rin-2), rout:rout+2};
   HT_BOX = null;
   if(S.ringStyle==='none'){ drawScaled(1, 0, S.pix*unit, S.blur*unit); return; }
+  // the centre dot never gets smaller, relative to the rings, than it is in the logo
+  { const m = centreMin(); if(S.centre < m - 1e-6){ S.centre = m; } const el = $('centre'); el.min = m.toFixed(4); el.value = S.centre; $('centreV').textContent = fmt.centre(S.centre); }
   const far = Math.max(Math.hypot(fx,fy),Math.hypot(W-fx,fy),Math.hypot(fx,H-fy),Math.hypot(W-fx,H-fy));
   const R = far*S.reach, N = S.rings, tw = S.twist*Math.PI/180, r0 = R*S.centre;
   const g = 1 + S.grow/100, bands = N-1;

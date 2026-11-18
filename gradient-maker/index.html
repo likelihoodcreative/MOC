@@ -334,8 +334,8 @@ function drawBands(fx, fy, R, r0, radius, alpha){
 }
 function drawRings(){
   const W = cv.width, H = cv.height, fx = S.fx*W, fy = S.fy*H;
-  // the centre dot keeps the logo's proportion: its radius is one ring pitch (an arc plus a gap), so R/N
-  const R = S.size/100*Math.min(W,H)/2, N = S.rings, r0 = R/N;
+  // the centre dot keeps the logo's proportion: its radius is 1.03 ring pitches (measured from the master artwork)
+  const R = S.size/100*Math.min(W,H)/2, N = S.rings, r0 = N > 1 ? R*1.03/(N - 1 + 1.03) : R;
   const g = 1 + S.grow/100, bands = N-1;
   const total = bands>0 ? (g===1 ? bands : (Math.pow(g,bands)-1)/(g-1)) : 1;
   const radius = k => {
