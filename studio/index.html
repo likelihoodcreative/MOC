@@ -103,13 +103,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.grid{grid-template-columns:minmax(0,1fr)}}
 .card{display:flex;flex-direction:column;gap:6px;min-width:0}
-.card>button.pick{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;border-radius:8px}
+.card>button.pick{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:12px;border-radius:8px}
+.ctext{display:flex;flex-direction:column;gap:2px}
 .card>button.pick:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .thumb{aspect-ratio:4/3;background:var(--stage);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--line)}
 .thumb img{max-width:92%;max-height:92%;box-shadow:0 1px 6px rgba(var(--shadow),.3)}
 .thumb .blank{height:84%;aspect-ratio:4/5;border:2px dashed var(--muted);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:28px}
 .card>button.pick:hover .thumb{border-color:var(--accent)}
-.cname{font-weight:600;font-size:16px;line-height:1.3}
+.cname{font-weight:600;font-size:16px;line-height:1.25}
 .cdesc{color:var(--muted);font-size:13px;line-height:1.45}
 .cacts{display:flex;gap:6px}
 .cacts button{font:inherit;font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
@@ -1158,8 +1159,9 @@ function card(p, mine){
   if(p.id === 'blank'){ const bl = document.createElement('div'); bl.className = 'blank'; bl.textContent = '+'; th.appendChild(bl); }
   else { const im = document.createElement('img'); im.alt = ''; if(thumbs[p.id]) im.src = thumbs[p.id]; im.dataset.id = p.id; th.appendChild(im); }
   const n = document.createElement('span'); n.className = 'cname'; n.textContent = p.name;
-  b.append(th, n);
-  if(p.desc){ const d = document.createElement('span'); d.className = 'cdesc'; d.textContent = p.desc; b.appendChild(d); }
+  const tx = document.createElement('span'); tx.className = 'ctext'; tx.appendChild(n);
+  if(p.desc){ const d = document.createElement('span'); d.className = 'cdesc'; d.textContent = p.desc; tx.appendChild(d); }
+  b.append(th, tx);
   b.setAttribute('aria-label', 'Use preset: ' + p.name);
   b.onclick = () => usePreset(p);
   c.appendChild(b);
