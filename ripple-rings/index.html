@@ -192,12 +192,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
           <input id="fade" type="range" min="0" max="100" step="1" value="100">
           <span class="val">Fades into the background colour</span></div>
         <span class="mini">Colour halftone</span>
-        <div class="ctl"><div class="row"><label for="pix">Halftone dot size</label><span class="val" id="pixV"></span></div>
+        <div class="ctl"><div class="row"><label for="pix">First ring dot size</label><span class="val" id="pixV"></span></div>
           <input id="pix" type="range" min="0" max="40" step="1" value="0"></div>
         <div class="ctl"><div class="row"><label for="pixInc">Increase per ring</label><span class="val" id="pixIncV"></span></div>
           <input id="pixInc" type="range" min="0" max="20" step="0.5" value="0"></div>
         <span class="mini">Blur</span>
-        <div class="ctl"><div class="row"><label for="blur">Centre strength</label><span class="val" id="blurV"></span></div>
+        <div class="ctl"><div class="row"><label for="blur">First ring strength</label><span class="val" id="blurV"></span></div>
           <input id="blur" type="range" min="0" max="40" step="0.5" value="0"></div>
         <div class="ctl"><div class="row"><label for="blurInc">Increase per ring</label><span class="val" id="blurIncV"></span></div>
           <input id="blurInc" type="range" min="0" max="20" step="0.25" value="0"></div>
@@ -378,7 +378,9 @@ function drawRings(){
   };
   const scaleAt = k => Math.pow(1+S.scale/100, k-1);
   const alpha = k => N===1 ? S.fade/100 : 1 - (1 - S.fade/100)*(k-1)/(N-1);
-  const layer = k => { ctx.globalAlpha = alpha(k); drawScaled(scaleAt(k), tw*(k-1), (S.pix + S.pixInc*(k-1))*unit, (S.blur + S.blurInc*(k-1))*unit); };
+  // the centre image is never touched by effects: they start at the first ring and build outwards
+  const fxAt = (base, inc, k) => k <= 1 ? 0 : (base + inc*(k-2))*unit;
+  const layer = k => { ctx.globalAlpha = alpha(k); drawScaled(scaleAt(k), tw*(k-1), fxAt(S.pix, S.pixInc, k), fxAt(S.blur, S.blurInc, k)); };
   $('outerV').textContent = 'Outer ring ' + Math.round(100*scaleAt(N)) + '%';
 
   if(S.ringStyle==='arcs'){
