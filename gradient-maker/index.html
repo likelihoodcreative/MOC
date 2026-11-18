@@ -241,20 +241,20 @@ const PRESETS = [
   ['custom','Custom size',0,0]
 ];
 
-// Brand type scale. size / line height are the guideline's px values; tr is tracking in em (0 = the font's own default spacing).
+// Brand type scale, Relume names and sizes (H1 to H6; Large, Medium, Regular, Small, Tiny). size / line height are the guideline's px values; tr is tracking in em (0 = the font's own default spacing).
 const FAM = { display:'Fraunces, Georgia, "Times New Roman", serif', text:'"Red Hat Text", system-ui, -apple-system, "Segoe UI", sans-serif' };
 const STYLES = {
-  d2xl:{label:'Display 2xl',fam:'display',size:72,lh:1.1,tr:0,ws:[600,800]},
-  dxl:{label:'Display xl',fam:'display',size:60,lh:1.1,tr:0,ws:[600,800]},
-  dlg:{label:'Display lg',fam:'display',size:48,lh:1.1,tr:0,ws:[600,800]},
-  dmd:{label:'Display md',fam:'display',size:36,lh:1.1,tr:0,ws:[600,800]},
-  dsm:{label:'Display sm',fam:'display',size:30,lh:1.1,tr:0,ws:[600,800]},
-  dxs:{label:'Display xs',fam:'display',size:24,lh:1.1,tr:0,ws:[600,800]},
-  txl:{label:'Text xl',fam:'text',size:20,lh:1.5,tr:0,ws:[400,500,600,700]},
-  tlg:{label:'Text lg',fam:'text',size:18,lh:28/18,tr:0,ws:[400,500,600,700]},
-  tmd:{label:'Text md',fam:'text',size:16,lh:1.5,tr:0,ws:[400,500,600,700]},
-  tsm:{label:'Text sm',fam:'text',size:14,lh:20/14,tr:0,ws:[400,500,600,700]},
-  txs:{label:'Text xs',fam:'text',size:12,lh:1.5,tr:0,ws:[400,500,600,700]},
+  h1:{label:'H1',fam:'display',size:56,lh:1.1,tr:0,ws:[600,800]},
+  h2:{label:'H2',fam:'display',size:48,lh:1.1,tr:0,ws:[600,800]},
+  h3:{label:'H3',fam:'display',size:40,lh:1.1,tr:0,ws:[600,800]},
+  h4:{label:'H4',fam:'display',size:32,lh:1.1,tr:0,ws:[600,800]},
+  h5:{label:'H5',fam:'display',size:24,lh:1.1,tr:0,ws:[600,800]},
+  h6:{label:'H6',fam:'display',size:20,lh:1.1,tr:0,ws:[600,800]},
+  large:{label:'Large',fam:'text',size:20,lh:1.5,tr:0,ws:[400,500,600,700]},
+  medium:{label:'Medium',fam:'text',size:18,lh:28/18,tr:0,ws:[400,500,600,700]},
+  regular:{label:'Regular',fam:'text',size:16,lh:1.5,tr:0,ws:[400,500,600,700]},
+  small:{label:'Small',fam:'text',size:14,lh:20/14,tr:0,ws:[400,500,600,700]},
+  tiny:{label:'Tiny',fam:'text',size:12,lh:1.5,tr:0,ws:[400,500,600,700]},
   eyebrow:{label:'Eyebrow',fam:'text',size:16,lh:1.5,tr:0,w:500,upper:true}
 };
 const WEIGHT_NAMES = {400:'Regular',500:'Medium',600:'Semibold',700:'Bold',800:'ExtraBold'};
@@ -597,8 +597,8 @@ function renderTextCols(){
 }
 function addText(kind){
   const defs = {
-    headline:{ text:'Your headline goes here', style:'dlg' },
-    body:{ text:'Body text goes here. Keep it to a sentence or two.', style:'txl' },
+    headline:{ text:'Your headline goes here', style:'h2' },
+    body:{ text:'Body text goes here. Keep it to a sentence or two.', style:'large' },
     eyebrow:{ text:'Eyebrow text', style:'eyebrow' }
   }[kind];
   const t = Object.assign({ id:nextId++, weight:400 }, defs);

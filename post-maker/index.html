@@ -231,11 +231,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <div class="ctl"><div class="row"><label for="fade">Fade: outer ring opacity</label><span class="val" id="fadeV"></span></div>
           <input id="fade" type="range" min="0" max="100" step="1" value="100">
           <span class="val">Fades into the background colour</span></div>
-        <span class="mini">Pixelate</span>
-        <div class="ctl"><div class="row"><label for="pix">Centre strength</label><span class="val" id="pixV"></span></div>
-          <input id="pix" type="range" min="0" max="40" step="0.5" value="0"></div>
+        <span class="mini">Colour halftone</span>
+        <div class="ctl"><div class="row"><label for="pix">Centre dot size</label><span class="val" id="pixV"></span></div>
+          <input id="pix" type="range" min="0" max="40" step="1" value="0"></div>
         <div class="ctl"><div class="row"><label for="pixInc">Increase per ring</label><span class="val" id="pixIncV"></span></div>
-          <input id="pixInc" type="range" min="0" max="40" step="0.5" value="0"></div>
+          <input id="pixInc" type="range" min="0" max="20" step="0.5" value="0"></div>
         <span class="mini">Blur</span>
         <div class="ctl"><div class="row"><label for="blur">Centre strength</label><span class="val" id="blurV"></span></div>
           <input id="blur" type="range" min="0" max="40" step="0.5" value="0"></div>
@@ -271,20 +271,20 @@ const PRESETS = [
   ['custom','Custom size',0,0]
 ];
 
-// Brand type scale. size / line height are the guideline's px values; tr is tracking in em (0 = the font's own default spacing).
+// Brand type scale, Relume names and sizes (H1 to H6; Large, Medium, Regular, Small, Tiny). size / line height are the guideline's px values; tr is tracking in em (0 = the font's own default spacing).
 const FAM = { display:'Fraunces, Georgia, "Times New Roman", serif', text:'"Red Hat Text", system-ui, -apple-system, "Segoe UI", sans-serif' };
 const STYLES = {
-  d2xl:{label:'Display 2xl',fam:'display',size:72,lh:1.1,tr:0,ws:[600,800]},
-  dxl:{label:'Display xl',fam:'display',size:60,lh:1.1,tr:0,ws:[600,800]},
-  dlg:{label:'Display lg',fam:'display',size:48,lh:1.1,tr:0,ws:[600,800]},
-  dmd:{label:'Display md',fam:'display',size:36,lh:1.1,tr:0,ws:[600,800]},
-  dsm:{label:'Display sm',fam:'display',size:30,lh:1.1,tr:0,ws:[600,800]},
-  dxs:{label:'Display xs',fam:'display',size:24,lh:1.1,tr:0,ws:[600,800]},
-  txl:{label:'Text xl',fam:'text',size:20,lh:1.5,tr:0,ws:[400,500,600,700]},
-  tlg:{label:'Text lg',fam:'text',size:18,lh:28/18,tr:0,ws:[400,500,600,700]},
-  tmd:{label:'Text md',fam:'text',size:16,lh:1.5,tr:0,ws:[400,500,600,700]},
-  tsm:{label:'Text sm',fam:'text',size:14,lh:20/14,tr:0,ws:[400,500,600,700]},
-  txs:{label:'Text xs',fam:'text',size:12,lh:1.5,tr:0,ws:[400,500,600,700]},
+  h1:{label:'H1',fam:'display',size:56,lh:1.1,tr:0,ws:[600,800]},
+  h2:{label:'H2',fam:'display',size:48,lh:1.1,tr:0,ws:[600,800]},
+  h3:{label:'H3',fam:'display',size:40,lh:1.1,tr:0,ws:[600,800]},
+  h4:{label:'H4',fam:'display',size:32,lh:1.1,tr:0,ws:[600,800]},
+  h5:{label:'H5',fam:'display',size:24,lh:1.1,tr:0,ws:[600,800]},
+  h6:{label:'H6',fam:'display',size:20,lh:1.1,tr:0,ws:[600,800]},
+  large:{label:'Large',fam:'text',size:20,lh:1.5,tr:0,ws:[400,500,600,700]},
+  medium:{label:'Medium',fam:'text',size:18,lh:28/18,tr:0,ws:[400,500,600,700]},
+  regular:{label:'Regular',fam:'text',size:16,lh:1.5,tr:0,ws:[400,500,600,700]},
+  small:{label:'Small',fam:'text',size:14,lh:20/14,tr:0,ws:[400,500,600,700]},
+  tiny:{label:'Tiny',fam:'text',size:12,lh:1.5,tr:0,ws:[400,500,600,700]},
   eyebrow:{label:'Eyebrow',fam:'text',size:16,lh:1.5,tr:0,w:500,upper:true}
 };
 const WEIGHT_NAMES = {400:'Regular',500:'Medium',600:'Semibold',700:'Bold',800:'ExtraBold'};
@@ -307,12 +307,74 @@ function imgRect(){
 }
 const HAS_FILTER = (() => { const t = document.createElement('canvas').getContext('2d'); t.filter = 'blur(1px)'; return t.filter === 'blur(1px)'; })();
 const off = document.createElement('canvas'), octx = off.getContext('2d');
-function drawScaled(s, rot, px, bl){
+/* ---------- colour halftone ---------- */
+// CMYK screens at the print angles (C 15°, M 75°, Y 0°, K 45°), dot area set by ink.
+// Key is Primary Dark and the paper is Primary Light, so the effect never makes pure black or white.
+const HT_ANG = [15, 75, 0, 45].map(d => d*Math.PI/180), HT_COS = HT_ANG.map(Math.cos), HT_SIN = HT_ANG.map(Math.sin);
+const HT_INK = [[0,174,239],[236,0,140],[255,242,0],[1,44,66]].map(c => c.map(v => v/255));
+const HT_PAPER = [251,245,245];
+let HT_BOX = null; // the ring being drawn (centre, inner and outer radius), so only the part that shows is computed
+const htc = document.createElement('canvas'), hctx = htc.getContext('2d');
+const smp = document.createElement('canvas'), sctx = smp.getContext('2d', {willReadFrequently:true});
+function halftone(cell){
+  const W = off.width, H = off.height, b = HT_BOX || {x0:0, y0:0, x1:W, y1:H};
+  const ccx = b.cx ?? 0, ccy = b.cy ?? 0, rin2 = (b.rin ?? 0)**2, rout2 = b.rout ? b.rout**2 : Infinity;
+  const x0 = Math.max(0, Math.floor(b.x0)), y0 = Math.max(0, Math.floor(b.y0));
+  const x1 = Math.min(W, Math.ceil(b.x1)), y1 = Math.min(H, Math.ceil(b.y1));
+  if(x1 <= x0 || y1 <= y0) return;
+  // average the image into a small grid, then work out C, M, Y and K for each sample
+  const ds = cell/2, sw = Math.max(1, Math.ceil(W/ds)), sh = Math.max(1, Math.ceil(H/ds));
+  smp.width = sw; smp.height = sh; sctx.imageSmoothingQuality = 'high'; sctx.drawImage(off, 0, 0, sw, sh);
+  const sd = sctx.getImageData(0, 0, sw, sh).data, ink = new Float32Array(sw*sh*4), Rmax = cell*0.7071;
+  for(let i = 0, j = 0; i < sd.length; i += 4, j += 4){
+    const a = sd[i+3]/255, r = sd[i]/255, g = sd[i+1]/255, bl = sd[i+2]/255, k = 1 - Math.max(r, g, bl), d = 1 - k || 1;
+    // stored as dot radius: dot area follows ink
+    ink[j] = Math.sqrt(Math.max(0, a*(1-r-k)/d))*Rmax; ink[j+1] = Math.sqrt(Math.max(0, a*(1-g-k)/d))*Rmax;
+    ink[j+2] = Math.sqrt(Math.max(0, a*(1-bl-k)/d))*Rmax; ink[j+3] = Math.sqrt(a*k)*Rmax;
+  }
+  const w = x1 - x0, h = y1 - y0; htc.width = w; htc.height = h;
+  const out = hctx.createImageData(w, h), od = out.data;
+  for(let y = y0, p = 0; y < y1; y++) for(let x = x0; x < x1; x++, p += 4){
+    const dcx = x - ccx, dcy = y - ccy, dc2 = dcx*dcx + dcy*dcy;
+    if(dc2 < rin2 || dc2 > rout2) continue; // left transparent: not visible in this ring
+    let R = HT_PAPER[0], G = HT_PAPER[1], B = HT_PAPER[2];
+    for(let c = 0; c < 4; c++){
+      const cs = HT_COS[c], sn = HT_SIN[c], u = x*cs + y*sn, v = y*cs - x*sn;
+      const cu = (Math.floor(u/cell) + 0.5)*cell, cv = (Math.floor(v/cell) + 0.5)*cell;
+      let sx = ((cu*cs - cv*sn)/ds)|0, sy = ((cu*sn + cv*cs)/ds)|0;
+      sx = sx < 0 ? 0 : sx >= sw ? sw-1 : sx; sy = sy < 0 ? 0 : sy >= sh ? sh-1 : sy;
+      const rad = ink[(sy*sw + sx)*4 + c] + 0.5;
+      if(rad <= 0.55) continue;
+      const du = u - cu, dv = v - cv, d2 = du*du + dv*dv;
+      if(d2 >= rad*rad) continue;
+      const cov = rad - Math.sqrt(d2); // soft dot edge
+      const f = cov >= 1 ? 1 : cov, ik = HT_INK[c];
+      R *= 1 - f*(1 - ik[0]); G *= 1 - f*(1 - ik[1]); B *= 1 - f*(1 - ik[2]);
+    }
+    od[p] = R; od[p+1] = G; od[p+2] = B; od[p+3] = 255;
+  }
+  hctx.putImageData(out, 0, 0);
+  ctx.drawImage(htc, x0, y0); // drawImage keeps the ring clip and fade
+}
+
+function drawScaled(s, rot, ht, bl){
   const W = cv.width, H = cv.height, fx = S.fx*W, fy = S.fy*H, r = imgRect();
   bl = bl > 0.25 ? bl : 0;
-  let soft = false;
-  if(bl && !HAS_FILTER && (!px || px < 1.5)){ px = Math.max(1.5, bl); soft = true; bl = 0; }
-  if(!px || px < 1.5){
+  if(ht >= 3){
+    // colour halftone: draw this ring's image full size, then screen it
+    off.width = W; off.height = H;
+    octx.setTransform(1,0,0,1,0,0);
+    octx.filter = bl && HAS_FILTER ? 'blur(' + bl + 'px)' : 'none';
+    octx.imageSmoothingQuality = 'high';
+    octx.translate(fx,fy); octx.rotate(rot); octx.scale(s,s); octx.translate(-fx,-fy);
+    octx.drawImage(img, r.x, r.y, r.w, r.h);
+    octx.filter = 'none';
+    halftone(ht);
+    return;
+  }
+  let px = 0, soft = false;
+  if(bl && !HAS_FILTER){ px = Math.max(1.5, bl); soft = true; bl = 0; } // browsers without canvas blur get a soft low-res stand-in
+  if(!px){
     ctx.save();
     if(bl) ctx.filter = 'blur(' + bl + 'px)';
     ctx.imageSmoothingQuality = 'high';
@@ -353,6 +415,9 @@ function arcShape(path, cx, cy, r, h, a0, a1){
 function drawRings(){
   const W = cv.width, H = cv.height, fx = S.fx*W, fy = S.fy*H;
   const unit = Math.max(W,H)/1200;
+  const box = (rout, rin = 0) => rout === Infinity ? {x0:0, y0:0, x1:W, y1:H, cx:fx, cy:fy, rin:Math.max(0, rin-2)}
+    : {x0:fx-rout-2, y0:fy-rout-2, x1:fx+rout+2, y1:fy+rout+2, cx:fx, cy:fy, rin:Math.max(0, rin-2), rout:rout+2};
+  HT_BOX = null;
   if(S.ringStyle==='none'){ drawScaled(1, 0, S.pix*unit, S.blur*unit); return; }
   const far = Math.max(Math.hypot(fx,fy),Math.hypot(W-fx,fy),Math.hypot(fx,H-fy),Math.hypot(W-fx,H-fy));
   const R = far*S.reach, N = S.rings, tw = S.twist*Math.PI/180, r0 = R*S.centre;
@@ -372,26 +437,27 @@ function drawRings(){
     // the image only shows inside the logo shapes: shape 1 is the centre dot, shapes 2..N are the arcs
     for(let k=1;k<=N;k++){
       const path = new Path2D();
-      if(k===1){ path.arc(fx,fy,r0,0,Math.PI*2); }
+      if(k===1){ path.arc(fx,fy,r0,0,Math.PI*2); HT_BOX = box(r0); }
       else {
         const pitch = (R - r0)/(N-1), w = pitch*(50 + S.thick*4)/100, h = w/2;
         const rc = r0 + (pitch - w) + (k-2)*pitch + h, rot = S.arcRot + S.twist*(k-1);
         for(const [d0,d1] of ARCS[(k-2)%ARCS.length]) arcShape(path, fx, fy, rc, h, (d0+rot)*Math.PI/180, (d1+rot)*Math.PI/180);
+        HT_BOX = box(rc + h, rc - h);
       }
       ctx.save(); ctx.clip(path); layer(k); ctx.restore();
     }
-    ctx.globalAlpha = 1;
+    HT_BOX = null; ctx.globalAlpha = 1;
     return;
   }
-  if(S.outside==='img'){ ctx.save(); layer(N); ctx.restore(); }
+  if(S.outside==='img'){ ctx.save(); HT_BOX = box(Infinity, radius(N)); layer(N); ctx.restore(); }
   for(let k=N;k>=1;k--){
     ctx.save();
-    ctx.beginPath(); ctx.arc(fx,fy,radius(k),0,Math.PI*2); ctx.clip();
+    ctx.beginPath(); ctx.arc(fx,fy,radius(k),0,Math.PI*2); ctx.clip(); HT_BOX = box(radius(k), k > 1 ? radius(k-1) : 0);
     ctx.fillStyle = S.bgCol; ctx.fillRect(0,0,W,H);
     layer(k);
     ctx.restore();
   }
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha = 1; HT_BOX = null;
   const lw = S.stroke*unit;
   if(lw>0){
     ctx.strokeStyle = S.strokeCol; ctx.lineWidth = lw;
@@ -510,7 +576,7 @@ function draw(exporting){
 /* ---------- controls: sliders ---------- */
 const fmt = { zoom:v=>v+'%', rings:v=>v, centre:v=>Math.round(v*100)+'%', scale:v=>'+'+v+'%', reach:v=>Math.round(v*100)+'%',
   grow:v=>'+'+(+v).toFixed(1)+'%', twist:v=>(+v).toFixed(1)+'°', arcRot:v=>v+'°', 
-  stroke:v=>(+v).toFixed(1)+' px', fade:v=>v+'%', pix:v=>(+v).toFixed(1)+' px', pixInc:v=>'+'+(+v).toFixed(1)+' px',
+  stroke:v=>(+v).toFixed(1)+' px', fade:v=>v+'%', pix:v=>(+v) < 3 ? 'Off' : (+v).toFixed(0)+' px', pixInc:v=>'+'+(+v).toFixed(1)+' px',
   blur:v=>(+v).toFixed(1)+' px', blurInc:v=>'+'+(+v).toFixed(2)+' px' };
 for(const key of Object.keys(fmt)){
   const el = $(key), out = $(key+'V');
@@ -618,8 +684,8 @@ function renderTextCols(){
 }
 function addText(kind){
   const defs = {
-    headline:{ text:'Your headline goes here', style:'dlg' },
-    body:{ text:'Body text goes here. Keep it to a sentence or two.', style:'txl' },
+    headline:{ text:'Your headline goes here', style:'h2' },
+    body:{ text:'Body text goes here. Keep it to a sentence or two.', style:'large' },
     eyebrow:{ text:'Eyebrow text', style:'eyebrow' }
   }[kind];
   const t = Object.assign({ id:nextId++, weight:400 }, defs);
