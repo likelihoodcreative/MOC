@@ -39,7 +39,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-
 @media (max-width:860px){.app{grid-template-columns:1fr}canvas{max-height:70vh}}
 .stage.drag{outline:2px dashed var(--rose);outline-offset:-8px}
 canvas{max-width:100%;max-height:100%;width:auto;height:auto;display:block;cursor:move;touch-action:none;
-  box-shadow:0 1px 2px rgba(var(--shadow),.2),0 10px 40px rgba(var(--shadow),.35)}
+  border:1px solid rgba(var(--shadow),.18)}
 .hint{position:absolute;left:24px;right:24px;bottom:12px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
 .rail{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:16px;align-self:start;min-width:0}
@@ -107,7 +107,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .ctext{display:flex;flex-direction:column;gap:2px}
 .card>button.pick:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .thumb{aspect-ratio:4/3;background:var(--stage);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--line)}
-.thumb img{max-width:92%;max-height:92%;box-shadow:0 1px 6px rgba(var(--shadow),.3)}
+.thumb img{max-width:92%;max-height:92%;outline:1px solid rgba(var(--shadow),.14)}
 .thumb .blank{height:84%;aspect-ratio:4/5;border:2px dashed var(--muted);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:28px}
 .card>button.pick:hover .thumb{border-color:var(--accent)}
 .cname{font-weight:600;font-size:16px;line-height:1.25}
