@@ -130,7 +130,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
   <aside class="rail">
     <div>
-      <a class="back" href="https://likelihoodcreative.github.io/MOC/">&larr; Back to tools</a>
       <h1>MOC Studio</h1>
       <p class="sub">Start from a preset or a blank canvas. Photo or gradient rings, effects and brand text, then download the PNG.</p>
     </div>
@@ -1087,10 +1086,10 @@ $('overlay').addEventListener('click', e => { if(e.target.id==='overlay') $('ove
 const T = (kind, text, extra) => Object.assign({}, TEXT_DEFS[kind], { text }, extra || {});
 const BUILTIN = [
   { id:'photo-rings', name:'Photo through rings', desc:'A photo magnified a step in each logo ring.', image:'img1',
-    S:{ W:1080, H:1350, fill:'photo', ringStyle:'arcs', rings:6, centre:0.2, scale:15, autoFit:false, fx:0.5, fy:0.42, reach:0.62, zoom:110 }, texts:[] },
+    S:{ W:1080, H:1350, fill:'photo', twist:7, ringStyle:'arcs', rings:6, centre:0.2, scale:15, autoFit:false, fx:0.5, fy:0.42, reach:0.62, zoom:110 }, texts:[] },
   { id:'logo-text', name:'Logo plus text', desc:'Photo in turned logo rings, above an eyebrow and headline.', image:'img3',
-    S:{ W:1080, H:1350, layout:'bottom', align:'left', autoFit:false, zoom:100, ox:0.0867, oy:-0.2316, ringStyle:'arcs', fill:'photo',
-        rings:6, centre:0.4808, scale:15, reach:0.51, twist:18, arcRot:162, fx:0.543, fy:0.3035 },
+    S:{ W:1080, H:1350, layout:'bottom', align:'left', autoFit:false, zoom:100, ox:0.0867, oy:-0.2316, ringStyle:'arcs', fill:'photo', twist:7,
+        rings:6, centre:0.4808, scale:15, reach:0.51, arcRot:162, fx:0.543, fy:0.3035 },
     texts:[ T('eyebrow','Eyebrow text'), T('headline','Your headline goes here') ] },
   { id:'gradient-post', name:'Gradient rings post', desc:'Logo rings in a blue to Highlight gradient, with a headline.', image:'img1',
     S:{ W:1080, H:1350, fill:'gradient', ringStyle:'arcs', rings:6, stops:['#009add','#c96763'], gType:'band', layout:'bottom' },
@@ -1100,17 +1099,17 @@ const BUILTIN = [
         autoFit:false, fx:0.8, fy:0.5, reach:0.55 },
     texts:[ T('eyebrow','Magnitude of Change'), T('headline','Small actions, magnified', { style:'h3' }) ] },
   { id:'email-header', name:'Email header', desc:'600 × 400 email image at 2x. Keep the words in the email as live text.', image:'img2',
-    S:{ W:1200, H:800, fill:'photo', ringStyle:'circle', rings:5, grow:12, scale:10, centre:0.34, blur:1.5, blurInc:2, autoFit:false, fx:0.47, fy:0.42, reach:0.75, zoom:110 }, texts:[] },
+    S:{ W:1200, H:800, fill:'photo', twist:7, ringStyle:'circle', rings:5, grow:12, scale:10, centre:0.34, blur:1.5, blurInc:2, autoFit:false, fx:0.47, fy:0.42, reach:0.75, zoom:110 }, texts:[] },
   { id:'quote-card', name:'Quote card', desc:'A partner quote on Dark Rose, rings in the corner.', image:'img1',
     S:{ W:1080, H:1080, bgCol:'#250f0e', fill:'gradient', ringStyle:'arcs', rings:6, stops:['#98413d','#7e3936'], gType:'band', angle:200,
         layout:'top', align:'left', autoFit:false, fx:0.86, fy:0.9, reach:0.6 },
     texts:[ T('headline','“A quote from a partner, in their own words.”', { style:'h3' }), T('body','Name, Role, Organisation', { style:'large', weight:500 }) ] },
   { id:'blur-circles', name:'Circles, increasing blur', desc:'Circle rings that blur a little more in each ring.', image:'img2',
-    S:{ W:1080, H:1350, fill:'photo', ringStyle:'circle', rings:7, grow:12, scale:8, blur:1.5, blurInc:2.5, autoFit:false, fx:0.42, fy:0.5, reach:0.8, zoom:120 }, texts:[] },
+    S:{ W:1080, H:1350, fill:'photo', twist:7, ringStyle:'circle', rings:7, grow:12, scale:8, blur:1.5, blurInc:2.5, autoFit:false, fx:0.42, fy:0.5, reach:0.8, zoom:120 }, texts:[] },
   { id:'halftone-logo', name:'Logo, increasing halftone', desc:'Logo rings with colour halftone dots that grow in each ring.', image:'img1',
-    S:{ W:1080, H:1080, fill:'photo', ringStyle:'arcs', rings:6, scale:12, pix:6, pixInc:2, autoFit:false, fx:0.5, fy:0.5, reach:0.66, zoom:115 }, texts:[] },
+    S:{ W:1080, H:1080, fill:'photo', twist:7, ringStyle:'arcs', rings:6, scale:12, pix:6, pixInc:2, autoFit:false, fx:0.5, fy:0.5, reach:0.66, zoom:115 }, texts:[] },
 ];
-const BLANK = { id:'blank', name:'Start blank', desc:'Default settings, no text.', image:'img1', S:{}, texts:[] };
+const BLANK = { id:'blank', name:'Start blank', desc:'Default settings, no text.', image:'img1', S:{ twist:7 }, texts:[] };
 
 const STORE = 'moc-studio-presets';
 function readMine(){ try { const v = JSON.parse(localStorage.getItem(STORE) || '[]'); return Array.isArray(v) ? v : []; } catch { return []; } }
