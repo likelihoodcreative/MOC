@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MOC Studio</title>
+<title>Magnitude Studio</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Fraunces (SIL OFL 1.1), built into the file with Soft pinned at 50 and Wonk on; weights 600 to 800, optical size automatic */
@@ -130,7 +130,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
   <aside class="rail">
     <div>
-      <h1>MOC Studio</h1>
+      <h1>Magnitude Studio</h1>
       <p class="sub">Start from a preset or a blank canvas. Photo or gradient rings, effects and brand text, then download the PNG.</p>
     </div>
     <div class="two">
@@ -316,7 +316,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div class="overlay gallery" id="gallery" role="dialog" aria-modal="true" aria-labelledby="galTitle" hidden>
   <div class="sheet">
     <div class="ghead">
-      <div><p class="eyebrow">MOC Studio</p><h2 id="galTitle">Start from a preset</h2></div>
+      <div><p class="eyebrow">Magnitude Studio</p><h2 id="galTitle">Start from a preset</h2></div>
       <button class="btn" id="galClose" type="button">Close</button>
     </div>
     <div class="grid" id="galBuiltin"></div>
@@ -1066,7 +1066,7 @@ async function saveBlob(name, blob){
 }
 function showPreview(){ draw(true); $('outImgEl').src = cv.toDataURL('image/png'); draw(); $('overlay').hidden = false; }
 $('exportBtn').onclick = () => {
-  const name = 'moc-studio-' + S.W + 'x' + S.H + '.png';
+  const name = 'magnitude-studio-' + S.W + 'x' + S.H + '.png';
   if(HOSTED && !dlApi){ showPreview(); return; }
   const btn = $('exportBtn'), label = btn.textContent;
   btn.disabled = true; btn.textContent = 'Preparing…';
@@ -1167,7 +1167,7 @@ function card(p, mine){
   if(mine){
     const a = document.createElement('div'); a.className = 'cacts';
     const ex = document.createElement('button'); ex.type = 'button'; ex.textContent = 'Export';
-    ex.onclick = () => saveBlob('moc-preset-' + p.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '.json',
+    ex.onclick = () => saveBlob('magnitude-preset-' + p.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '.json',
       new Blob([JSON.stringify(Object.assign({ format:'moc-studio-preset', version:1 }, p), null, 1)], { type:'application/json' })).catch(() => {});
     const del = document.createElement('button'); del.type = 'button'; del.className = 'del';
     let armed = false;
@@ -1250,7 +1250,7 @@ $('importFile').addEventListener('change', e => {
   rd.onload = () => {
     let p; try { p = JSON.parse(rd.result); } catch { p = null; }
     const note = $('galNote');
-    if(!p || typeof p !== 'object' || !p.S || typeof p.S !== 'object'){ note.textContent = "That file isn't a MOC Studio preset."; note.hidden = false; return; }
+    if(!p || typeof p !== 'object' || !p.S || typeof p.S !== 'object'){ note.textContent = "That file isn't a Magnitude Studio preset."; note.hidden = false; return; }
     const clean = { id:'u' + Date.now().toString(36), name: String(p.name || 'Imported preset').slice(0, 40), desc:'Imported', S:p.S,
       texts: Array.isArray(p.texts) ? p.texts.filter(t => t && typeof t.text === 'string' && STYLES[t.style]).map(t => ({ text:t.text, style:t.style, weight:+t.weight || 400, color:String(t.color || '#fbf5f5'), manual:false })) : [] };
     if(typeof p.imageData === 'string' && p.imageData.startsWith('data:image/')) clean.imageData = p.imageData; else clean.image = IMAGES[p.image] ? p.image : 'img1';
